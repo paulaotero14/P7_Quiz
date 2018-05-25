@@ -4,9 +4,11 @@ const {models} = require("../models");
 // Autoload the quiz with id equals to :quizId
 exports.load = (req, res, next, quizId) => {
 
-    models.quiz.findById(quizId)
+    models.quizzes.findById(quizId)
+    //lo que encuentra es quiz
     .then(quiz => {
         if (quiz) {
+            //encontramos el quiz con ese id
             req.quiz = quiz;
             next();
         } else {
@@ -20,8 +22,9 @@ exports.load = (req, res, next, quizId) => {
 // GET /quizzes
 exports.index = (req, res, next) => {
 
-    models.quiz.findAll()
+    models.quizzes.findAll()
     .then(quizzes => {
+        //cargo todos los quizzes en la vista index
         res.render('quizzes/index.ejs', {quizzes});
     })
     .catch(error => next(error));
@@ -53,7 +56,7 @@ exports.create = (req, res, next) => {
 
     const {question, answer} = req.body;
 
-    const quiz = models.quiz.build({
+    const quiz = models.quizzes.build({
         question,
         answer
     });
@@ -98,6 +101,7 @@ exports.update = (req, res, next) => {
         req.flash('success', 'Quiz edited successfully.');
         res.redirect('/quizzes/' + quiz.id);
     })
+    //CAPTURA DE ERRORES
     .catch(Sequelize.ValidationError, error => {
         req.flash('error', 'There are errors in the form:');
         error.errors.forEach(({message}) => req.flash('error', message));
@@ -151,5 +155,84 @@ exports.check = (req, res, next) => {
         quiz,
         result,
         answer
-    });
+    })
 };
+
+// GET /quizzes/randomplay
+exports.randomplay = (req, res, next) => {
+ 
+    if(req.session.ramdomplay === undefined){
+        req.session.randomplay = [];  
+      }
+
+      var aux = [];
+
+      Sequelize.Promise.resolve()
+      .then(function(){
+          return models.quizzes.findAll();
+      })
+      .then(function(quizzes){
+          for(var i = 0; i<quizzes.length; i++){
+              aux.push(quizzes[i]);
+          }
+          let rand = parseInt(Math.random() * aux.length)
+          return aux[rand]
+      })
+      .then(function(quiz){
+        const score = req.session.randomplay.length;
+        if(quiz){
+            res.render('random_play', { quiz, score });
+        } else {
+            // Hemos acabado.
+            delete req.session.randomplay;
+            res.render('random_nomore', { score });
+        }
+        
+    
+      })
+      .catch(function (error) {
+        next(error);
+    });
+    };
+
+// GET /quizzes/randomcheck/:quizId?answer=respuesta
+exports.randomcheck = (req, res, next) => {
+    
+    var quiz = models.quizzes.find
+    var quizId = req.params.quizId
+    var answer = req.query.answer
+
+    models.quizzes.findById(quizId)
+    .then(quiz => {
+        score = req.session.randomplay.length
+        let result = true
+        if (quiz.answer.toLowerCase().trim() == answer.toLowerCase().trim()) {
+
+            req.session.randomplay.push(quiz.id)
+            score = req.session.randomplay.length
+            if (score == req.session.total) {
+                
+                req.session.randomplay = []
+                res.render('random_nomore',{
+                    score
+                })
+            } else {
+                res.render('random_result', {
+                    score,
+                    answer,
+                    result
+                })
+            }
+        } else {
+            req.session.randomplay = []
+            result = false
+            res.render('random_result',{
+               score,
+               answer,
+               result
+            })
+        }
+    })
+    .catch(error => next(error));
+}
+
