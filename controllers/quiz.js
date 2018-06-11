@@ -9,7 +9,12 @@ exports.load = (req, res, next, quizId) => {
 
     models.quiz.findById(quizId, {
         include: [
-            models.tip,
+            {
+                model: models.tip,
+                include: [
+                    {model: models.user, as: 'author'}
+                ]
+            },
             {model: models.user, as: 'author'}
         ]
     })
@@ -225,3 +230,107 @@ exports.check = (req, res, next) => {
         answer
     });
 };
+
+// GET /quizzes/randomplay
+exports.randomplay = (req, res, next) => {
+   quizzes = ""
+   
+   models.quiz.findAll().then(resp => {
+       req.session.total = resp.length
+       var score = 0
+       var aux = []
+
+       if (req.session.arrayIdContestadas == undefined) {
+           req.session.arrayIdContestadas = []
+           var i;
+           for (i = 0; i<resp.length; i++){
+                   aux.push(resp[i])
+           }
+       } else {
+           for (i = 0; i<resp.length; i++){
+                   aux.push(resp[i])
+           }
+               score = req.session.arrayIdContestadas.length
+          
+       }
+       
+       
+       if (resp) {
+           // creo un array de ids
+           var ids = []
+           var y
+           for (y = 0; y<resp.length; y++) {
+               ids.push(resp[y].id)
+           }
+           
+           if (req.session.arrayIdContestadas.length > 0) {
+               aux = resp
+           }
+           var i
+           for (j = 0; j<aux.length; j++) {
+               var i
+               for (i=0; i<req.session.arrayIdContestadas.length; i++){
+                   if(aux[j].id == req.session.arrayIdContestadas[i]) {
+                       aux.splice(j,1)
+                   }            
+               }
+           }
+           for (i = 0; i<aux.length; i++){
+               console.log("\n")
+               console.log("IDs GUARDADOS", aux[i].id)
+           
+           }
+           let rand = parseInt(Math.random() * aux.length)
+           var quiz =  aux[rand]
+           
+           score = req.session.arrayIdContestadas.length
+           res.render('random_play',{
+               score,
+               quiz
+           });
+       } else {
+           throw new Error('There is no quizzes in the database');
+       }
+   })
+};
+
+// GET /quizzes/randomcheck/:quizId?answer=respuesta
+exports.randomcheck = (req, res, next) => {
+   
+   var quiz = models.quiz.find
+   var quizId = req.params.quizId
+   var answer = req.query.answer
+
+   models.quiz.findById(quizId)
+   .then(quiz => {
+       score = req.session.arrayIdContestadas.length
+       let result = true
+       if (quiz.answer == answer) {
+
+           req.session.arrayIdContestadas.push(quiz.id)
+           score = req.session.arrayIdContestadas.length
+           if (score == req.session.total) {
+               
+               req.session.arrayIdContestadas = []
+               res.render('random_nomore',{
+                   score
+               })
+           } else {
+               res.render('random_result', {
+                   score,
+                   answer,
+                   result
+               })
+           }
+       } else {
+           req.session.arrayIdContestadas = []
+           result = false
+           res.render('random_result',{
+              score,
+              answer,
+              result
+           })
+       }
+   })
+   .catch(error => next(error));
+}
