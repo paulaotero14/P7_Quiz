@@ -13,10 +13,10 @@ body {
 
 .main {
     flex: 1 100%;
-    border: 1px solid #999;
+    border: 1px solid rgb(90, 139, 158);
     padding: 2px;
     margin: 1px;
-    background: #eee;
+    background: rgb(184, 221, 243);
 }
 
 #mainHeader, #mainNav, #mainFooter {
@@ -37,7 +37,7 @@ body {
 }
 
 a {
-    color: #00B7FF;
+    color: rgb(38, 92, 163);
 }
 
 .wideRow {
@@ -58,7 +58,7 @@ a {
 
 #flashinfo {
     width: auto;
-    border: 2px solid blue;
+    border: 2px solid rgb(90, 139, 158);
     padding: 7px;
     padding-bottom: 0;
     margin-bottom: 20px;
@@ -73,7 +73,7 @@ a {
     font-size: 12px;
     margin: -7px;
     margin-bottom: 0px;
-    background-color: #00c;
+    background-color: rgb(90, 139, 158);
     color: #ffffff;
 }
 
@@ -116,7 +116,7 @@ a {
     padding: 7px;
     padding-bottom: 0;
     margin-bottom: 20px;
-    background-color: #f0f0f0;
+    background-color: rgb(90, 139, 158);
     color: #000;
 }
 
